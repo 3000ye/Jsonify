@@ -5,7 +5,7 @@
 
 
 // 将 JSON 类型转换为 string
-static std::string jsonify_type_to_string(JsonifyType type) {
+static std::string jsonify_type_to_string(const JsonifyType type) {
     switch (type) {
         case JsonifyType::JSONIFY_NULL:    return "JSONIFY_NULL";
         case JsonifyType::JSONIFY_TRUE:    return "JSONIFY_TRUE";
@@ -19,7 +19,7 @@ static std::string jsonify_type_to_string(JsonifyType type) {
 }
 
 // 将 parse code 转换为 string
-static std::string jsonify_parse_code_to_string(JsonifyParseCode code) {
+static std::string jsonify_parse_code_to_string(const JsonifyParseCode code) {
     switch (code) {
         case JsonifyParseCode::OK:                 return "OK";
         case JsonifyParseCode::EXPECT_VALUE:       return "EXPECT_VALUE";
@@ -70,10 +70,10 @@ static void test_parse_null() {
     EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, " \n\t\rnull"));
 
     EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "never"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "never null"));
     EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "nullnull"));
 
     EXPECT_EQ_TYPE(JsonifyParseCode::ROOT_NOT_SINGULAR, jsonify_parse(&val, "null null"));
-    EXPECT_EQ_TYPE(JsonifyParseCode::ROOT_NOT_SINGULAR, jsonify_parse(&val, "never null"));
 }
 
 static void test_parse() {

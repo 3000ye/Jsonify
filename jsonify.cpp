@@ -1,5 +1,6 @@
 #include <cassert>
 #include <string>
+#include <iostream>
 
 #include "jsonify.hpp"
 
@@ -21,20 +22,24 @@ static void jsonify_delete_whitespace(JsonifyContext* ctx) {
 
 // 解析 JSON 是否为 null
 static JsonifyParseCode jsonify_parse_null(JsonifyContext* ctx, JsonifyValue* val) {
-    auto head = ctx->json.substr(0, 4);
+    const std::string _json = ctx->json;
 
-    if (head != "null") return JsonifyParseCode::INVALID_VALUE;
-    else {
-        ctx->json = ctx->json.substr(4, ctx->json.size());
-        val->type = JsonifyType::JSONIFY_NULL;
+    if (_json.size() < 4) return JsonifyParseCode::INVALID_VALUE;
+    if (_json.substr(0, 4) != "null") return JsonifyParseCode::INVALID_VALUE;
+    if (_json.size() > 4 and (_json[4] != ' ' and _json[4] != '\t' and _json[4] != '\n' and _json[4] != '\r'))
+        return JsonifyParseCode::INVALID_VALUE;
 
-        return JsonifyParseCode::OK;
-    }
+    ctx->json = ctx->json.substr(4, ctx->json.size());
+    val->type = JsonifyType::JSONIFY_NULL;
+
+    return JsonifyParseCode::OK;
 }
 
 
-//
+// 解析 JSON 值
 static JsonifyParseCode jsonify_parse_value(JsonifyContext* ctx, JsonifyValue* val) {
+    jsonify_delete_whitespace(ctx);
+
     switch (ctx->json[0]) {
         case 'n': return jsonify_parse_null(ctx, val);
         default: return JsonifyParseCode::OK;
@@ -47,8 +52,6 @@ JsonifyParseCode jsonify_parse(JsonifyValue* val, const std::string& json) {
     assert(val != nullptr);
 
     JsonifyContext ctx; ctx.json = json;
-
-    jsonify_delete_whitespace(&ctx);
     return jsonify_parse_value(&ctx, val);
 }
 

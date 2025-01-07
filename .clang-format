@@ -1,0 +1,5 @@
+BraceWrapping:
+  AfterControlStatement: false
+  AfterFunction: false
+IndentWidth: 4
+UseTab: Never
