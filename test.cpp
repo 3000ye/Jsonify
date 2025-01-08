@@ -59,25 +59,72 @@ static int test_pass = 0;
 #define EXPECT_EQ_TYPE(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual)
 
 
+// null 值测试
 static void test_parse_null() {
     JsonifyValue val{};
-    val.type = JsonifyType::JSONIFY_NULL;
-
-    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_NULL, jsonify_get_type(&val));
 
     EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, "null"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_NULL, jsonify_get_type(&val));
     EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, "   null"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_NULL, jsonify_get_type(&val));
     EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, " \n\t\rnull"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_NULL, jsonify_get_type(&val));
 
     EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "never"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "nul"));
     EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "never null"));
     EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "nullnull"));
 
     EXPECT_EQ_TYPE(JsonifyParseCode::ROOT_NOT_SINGULAR, jsonify_parse(&val, "null null"));
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::EXPECT_VALUE, jsonify_parse(&val, "  \t\n\r "));
 }
 
+// true 值测试
+static void test_parse_true() {
+    JsonifyValue val{};
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, "true"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_TRUE, jsonify_get_type(&val));
+    EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, "   true"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_TRUE, jsonify_get_type(&val));
+    EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, " \n\t\rtrue"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_TRUE, jsonify_get_type(&val));
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "never"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "treu"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "tru null"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "truetrll"));
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::ROOT_NOT_SINGULAR, jsonify_parse(&val, "true true"));
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::EXPECT_VALUE, jsonify_parse(&val, "  \n\t\r  "));
+}
+
+// true 值测试
+static void test_parse_false() {
+    JsonifyValue val{};
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, "false"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_FALSE, jsonify_get_type(&val));
+    EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, "   false"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_FALSE, jsonify_get_type(&val));
+    EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, " \n\t\rfalse"));
+    EXPECT_EQ_TYPE(JsonifyType::JSONIFY_FALSE, jsonify_get_type(&val));
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "never"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "falseese"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "ffalse"));
+    EXPECT_EQ_TYPE(JsonifyParseCode::INVALID_VALUE, jsonify_parse(&val, "truetrll"));
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::ROOT_NOT_SINGULAR, jsonify_parse(&val, "false true"));
+
+    EXPECT_EQ_TYPE(JsonifyParseCode::EXPECT_VALUE, jsonify_parse(&val, "  \n\t\r  "));
+}
 static void test_parse() {
     test_parse_null();
+    test_parse_true();
+    test_parse_false();
 }
 
 int main() {
