@@ -25,7 +25,8 @@ enum class JsonifyParseCode{
 
 // 定义 JSON 树节点（JSON 值）
 struct JsonifyValue {
-    JsonifyType type;
+    JsonifyType type;  // JSON 的类型
+    double num;        // number 类型的数字
 };
 
 
@@ -34,3 +35,6 @@ JsonifyParseCode jsonify_parse(JsonifyValue* val, const std::string& json);
 
 // 获取类型
 JsonifyType jsonify_get_type(const JsonifyValue* val);
+
+// 获取 number
+double jsonify_get_number(const JsonifyValue* val);

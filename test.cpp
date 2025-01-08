@@ -121,6 +121,16 @@ static void test_parse_false() {
 
     EXPECT_EQ_TYPE(JsonifyParseCode::EXPECT_VALUE, jsonify_parse(&val, "  \n\t\r  "));
 }
+
+
+// number 测试
+static void test_parse_number() {
+    JsonifyValue val{};
+    val.type = JsonifyType::JSONIFY_NUMBER;
+    
+}
+
+
 static void test_parse() {
     test_parse_null();
     test_parse_true();

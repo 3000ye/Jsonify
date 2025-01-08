@@ -29,7 +29,7 @@ static JsonifyParseCode jsonify_check_right_whitespace(JsonifyContext* ctx) {
 }
 
 
-// 解析 JSON 是否为 null
+// 解析 JSON 为 null
 static JsonifyParseCode jsonify_parse_null(JsonifyContext* ctx, JsonifyValue* val) {
     const std::string _json = ctx->json;
 
@@ -45,7 +45,7 @@ static JsonifyParseCode jsonify_parse_null(JsonifyContext* ctx, JsonifyValue* va
 }
 
 
-// 解析 JSON 是否为 true
+// 解析 JSON 为 true
 static JsonifyParseCode jsonify_parse_true(JsonifyContext* ctx, JsonifyValue* val) {
     const std::string _json = ctx->json;
 
@@ -61,7 +61,7 @@ static JsonifyParseCode jsonify_parse_true(JsonifyContext* ctx, JsonifyValue* va
 }
 
 
-// 解析 JSON 是否为 false
+// 解析 JSON 为 false
 static JsonifyParseCode jsonify_parse_false(JsonifyContext* ctx, JsonifyValue* val) {
     const std::string _json = ctx->json;
 
@@ -76,6 +76,13 @@ static JsonifyParseCode jsonify_parse_false(JsonifyContext* ctx, JsonifyValue* v
     return JsonifyParseCode::OK;
 }
 
+
+// 解析 JSON 为 number
+static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* val) {
+    return JsonifyParseCode::OK;
+}
+
+
 // 解析 JSON 值
 static JsonifyParseCode jsonify_parse_value(JsonifyContext* ctx, JsonifyValue* val) {
     jsonify_delete_left_whitespace(ctx);
@@ -84,8 +91,8 @@ static JsonifyParseCode jsonify_parse_value(JsonifyContext* ctx, JsonifyValue* v
         case '\0': return JsonifyParseCode::EXPECT_VALUE;  // 只有空白符
         case 'n': return jsonify_parse_null(ctx, val);     // null
         case 't': return jsonify_parse_true(ctx, val);     // true
-        case 'f': return jsonify_parse_false(ctx, val);     // false
-        default: return JsonifyParseCode::OK;
+        case 'f': return jsonify_parse_false(ctx, val);    // false
+        default: return jsonify_parse_number(ctx, val);    // 默认解析 number
     }
 }
 
@@ -103,4 +110,11 @@ JsonifyParseCode jsonify_parse(JsonifyValue* val, const std::string& json) {
 // 返回 JsonifyValue 的 type
 JsonifyType jsonify_get_type(const JsonifyValue* val) {
     return val->type;
+}
+
+
+// 返回 JsonifyValue 的 number
+double jsonify_get_number(const JsonifyValue* val) {
+    assert(val != nullptr and val->type == JsonifyType::JSONIFY_NUMBER);
+    return val->num;
 }
