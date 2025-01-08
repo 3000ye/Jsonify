@@ -14,18 +14,18 @@ enum class JsonifyType {
 };
 
 
-// 定义 JSON 树节点（JSON 值）
-struct JsonifyValue {
-    JsonifyType type;
-};
-
-
 // 定义返回码
 enum class JsonifyParseCode{
     OK = 0,
     EXPECT_VALUE,       // 只有空字符
     INVALID_VALUE,      // 无效值
     ROOT_NOT_SINGULAR,  // 在一个值的空白之后，还有值
+};
+
+
+// 定义 JSON 树节点（JSON 值）
+struct JsonifyValue {
+    JsonifyType type;
 };
 
 

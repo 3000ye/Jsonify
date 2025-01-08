@@ -29,7 +29,7 @@ static std::string jsonify_parse_code_to_string(const JsonifyParseCode code) {
     }
 }
 
-// 使用模板函数，自动将不同枚举项转换为 string
+// 使用模板函数，将不同枚举项转换为 string
 template <typename T>
 std::string enum_to_string_generic(const T& _enum) {
     if constexpr (std::is_same_v<T, JsonifyType>) return jsonify_type_to_string(_enum);

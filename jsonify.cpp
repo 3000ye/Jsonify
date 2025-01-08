@@ -11,12 +11,21 @@ struct JsonifyContext {
 
 
 // 删除 JSON 最前面的空白符
-static void jsonify_delete_whitespace(JsonifyContext* ctx) {
+static void jsonify_delete_left_whitespace(JsonifyContext* ctx) {
     int idx = 0;
     while (ctx->json[idx] == ' ' or ctx->json[idx] == '\t' or ctx->json[idx] == '\n' or ctx->json[idx] == '\r')
         idx ++;
 
     ctx->json = ctx->json.substr(idx, ctx->json.size());
+}
+
+
+// 判断空白符之后是否还有值
+static JsonifyParseCode jsonify_check_right_whitespace(JsonifyContext* ctx) {
+    jsonify_delete_left_whitespace(ctx);
+
+    if (ctx->json[0] != '\0') return JsonifyParseCode::ROOT_NOT_SINGULAR;
+    return JsonifyParseCode::OK;
 }
 
 
@@ -38,7 +47,7 @@ static JsonifyParseCode jsonify_parse_null(JsonifyContext* ctx, JsonifyValue* va
 
 // 解析 JSON 值
 static JsonifyParseCode jsonify_parse_value(JsonifyContext* ctx, JsonifyValue* val) {
-    jsonify_delete_whitespace(ctx);
+    jsonify_delete_left_whitespace(ctx);
 
     switch (ctx->json[0]) {
         case 'n': return jsonify_parse_null(ctx, val);
@@ -52,7 +61,8 @@ JsonifyParseCode jsonify_parse(JsonifyValue* val, const std::string& json) {
     assert(val != nullptr);
 
     JsonifyContext ctx; ctx.json = json;
-    return jsonify_parse_value(&ctx, val);
+    auto ret = jsonify_parse_value(&ctx, val);
+    return ret == JsonifyParseCode::OK ? jsonify_check_right_whitespace(&ctx) : ret;
 }
 
 
