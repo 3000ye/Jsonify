@@ -29,56 +29,27 @@ static JsonifyParseCode jsonify_check_right_whitespace(JsonifyContext* ctx) {
 }
 
 
-// 解析 JSON 为 null
-static JsonifyParseCode jsonify_parse_null(JsonifyContext* ctx, JsonifyValue* val) {
+// 解析 JSON 为 null, true, false
+static JsonifyParseCode jsonify_parse_literal(JsonifyContext* ctx, JsonifyValue* val, const std::string& literal, const JsonifyType type) {
     const std::string _json = ctx->json;
+    const unsigned long l = literal.size();
 
-    if (_json.size() < 4) return JsonifyParseCode::INVALID_VALUE;
-    if (_json.substr(0, 4) != "null") return JsonifyParseCode::INVALID_VALUE;
-    if (_json.size() > 4 and (_json[4] != ' ' and _json[4] != '\t' and _json[4] != '\n' and _json[4] != '\r'))
+    if (_json.size() < l) return JsonifyParseCode::INVALID_VALUE;
+    if (_json.substr(0, l) != literal) return JsonifyParseCode::INVALID_VALUE;
+    if (_json.size() > 5 and (_json[l] != ' ' and _json[l] != '\t' and _json[l] != '\r' and _json[l] != '\n'))
         return JsonifyParseCode::INVALID_VALUE;
 
-    ctx->json = ctx->json.substr(4, ctx->json.size());
-    val->type = JsonifyType::JSONIFY_NULL;
-
-    return JsonifyParseCode::OK;
-}
-
-
-// 解析 JSON 为 true
-static JsonifyParseCode jsonify_parse_true(JsonifyContext* ctx, JsonifyValue* val) {
-    const std::string _json = ctx->json;
-
-    if (_json.size() < 4) return JsonifyParseCode::INVALID_VALUE;
-    if (_json.substr(0, 4) != "true") return JsonifyParseCode::INVALID_VALUE;
-    if (_json.size() > 4 and (_json[4] != ' ' and _json[4] != '\t' and _json[4] != '\n' and _json[4] != '\r'))
-        return JsonifyParseCode::INVALID_VALUE;
-
-    ctx->json = ctx->json.substr(4, ctx->json.size());
-    val->type = JsonifyType::JSONIFY_TRUE;
-
-    return JsonifyParseCode::OK;
-}
-
-
-// 解析 JSON 为 false
-static JsonifyParseCode jsonify_parse_false(JsonifyContext* ctx, JsonifyValue* val) {
-    const std::string _json = ctx->json;
-
-    if (_json.size() < 5) return JsonifyParseCode::INVALID_VALUE;
-    if (_json.substr(0, 5) != "false") return JsonifyParseCode::INVALID_VALUE;
-    if (_json.size() > 5 and (_json[5] != ' ' and _json[5] != '\t' and _json[5] != '\n' and _json[5] != '\r'))
-        return JsonifyParseCode::INVALID_VALUE;
-
-    ctx->json = ctx->json.substr(5, ctx->json.size());
-    val->type = JsonifyType::JSONIFY_FALSE;
-
+    ctx->json = ctx->json.substr(l, ctx->json.size());
+    val->type = type;
     return JsonifyParseCode::OK;
 }
 
 
 // 解析 JSON 为 number
 static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* val) {
+    ctx->json = ctx->json.substr(1, ctx->json.size());
+    val->type = JsonifyType::JSONIFY_NUMBER;
+    val->num = 0.0;
     return JsonifyParseCode::OK;
 }
 
@@ -88,11 +59,16 @@ static JsonifyParseCode jsonify_parse_value(JsonifyContext* ctx, JsonifyValue* v
     jsonify_delete_left_whitespace(ctx);
 
     switch (ctx->json[0]) {
-        case '\0': return JsonifyParseCode::EXPECT_VALUE;  // 只有空白符
-        case 'n': return jsonify_parse_null(ctx, val);     // null
-        case 't': return jsonify_parse_true(ctx, val);     // true
-        case 'f': return jsonify_parse_false(ctx, val);    // false
-        default: return jsonify_parse_number(ctx, val);    // 默认解析 number
+        case '\0':
+            return JsonifyParseCode::EXPECT_VALUE;                                                 // 只有空白符
+        case 'n':
+            return jsonify_parse_literal(ctx, val, "null", JsonifyType::JSONIFY_NULL);    // null
+        case 't':
+            return jsonify_parse_literal(ctx, val, "true", JsonifyType::JSONIFY_TRUE);    // true
+        case 'f':
+            return jsonify_parse_literal(ctx, val, "false", JsonifyType::JSONIFY_FALSE);  // false
+        default:
+            return jsonify_parse_number(ctx, val);                                                 // 默认解析 number
     }
 }
 
@@ -102,7 +78,7 @@ JsonifyParseCode jsonify_parse(JsonifyValue* val, const std::string& json) {
     assert(val != nullptr);
 
     JsonifyContext ctx; ctx.json = json;
-    auto ret = jsonify_parse_value(&ctx, val);
+    const auto ret = jsonify_parse_value(&ctx, val);
     return ret == JsonifyParseCode::OK ? jsonify_check_right_whitespace(&ctx) : ret;
 }
 
