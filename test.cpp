@@ -155,14 +155,36 @@ static void test_parse_invalid_value() {
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "truetrue");
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "ffalse");
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "?");
+
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "+0");
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "+1");
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, ".123");
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "1.");
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "INF");
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "inf");
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "NAN");
+    TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "nan");
 }
 
 
 // root_not_singular 测试
 static void test_parse_root_not_singular() {
+    // 空格之后不应该有内容
     TEST_ERROR(JsonifyParseCode::ROOT_NOT_SINGULAR, "null x");
     TEST_ERROR(JsonifyParseCode::ROOT_NOT_SINGULAR, "true x");
     TEST_ERROR(JsonifyParseCode::ROOT_NOT_SINGULAR, "false x");
+
+    // 0 之后不应该有内容
+    TEST_ERROR(JsonifyParseCode::ROOT_NOT_SINGULAR, "0123");
+    TEST_ERROR(JsonifyParseCode::ROOT_NOT_SINGULAR, "0x0");
+    TEST_ERROR(JsonifyParseCode::ROOT_NOT_SINGULAR, "0x123");
+}
+
+
+// number_too_big 测试
+static void test_parse_number_too_big() {
+    TEST_ERROR(JsonifyParseCode::NUMBER_TOO_BIG, "1e999");
+    TEST_ERROR(JsonifyParseCode::NUMBER_TOO_BIG, "-1e999");
 }
 
 
@@ -173,6 +195,7 @@ static void test_parse() {
     test_parse_expect_value();
     test_parse_invalid_value();
     test_parse_root_not_singular();
+    test_parse_number_too_big();
 }
 
 
