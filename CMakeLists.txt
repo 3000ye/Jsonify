@@ -6,3 +6,5 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(
     Jsonify jsonify.cpp jsonify.hpp test.cpp
 )
+
+add_executable(std_variant learn_cpp/std_variant.cpp)

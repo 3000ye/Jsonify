@@ -1,6 +1,5 @@
 #include <string>
 #include <iostream>
-#include <stdlib.h>
 
 #include "jsonify.hpp"
 
@@ -72,7 +71,7 @@ static int test_pass = 0;
 // null, true, false 测试
 #define TEST_LITERAL(expect, json) \
     do { \
-        JsonifyValue val{}; \
+        JsonifyValue val; \
         EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, json)); \
         EXPECT_EQ_TYPE(expect, jsonify_get_type(&val)); \
     } while(0)
@@ -93,7 +92,7 @@ static void test_parse_literal() {
 // number 测试
 #define TEST_NUMBER(expect, json) \
     do { \
-        JsonifyValue val{}; \
+        JsonifyValue val; \
         EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, json)); \
         EXPECT_EQ_TYPE(JsonifyType::JSONIFY_NUMBER, jsonify_get_type(&val)); \
         EXPECT_EQ_DOUBLE(expect, jsonify_get_number(&val)); \
@@ -136,7 +135,7 @@ static void test_parse_number() {
 // 错误的测试用例
 #define TEST_ERROR(error, json) \
     do { \
-        JsonifyValue val{}; \
+        JsonifyValue val; \
         EXPECT_EQ_TYPE(error, jsonify_parse(&val, json)); \
     } while(0)
 

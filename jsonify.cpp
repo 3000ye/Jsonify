@@ -1,7 +1,6 @@
 #include <cassert>
 #include <string>
 #include <iostream>
-#include <stdlib.h>
 
 #include "jsonify.hpp"
 
@@ -81,12 +80,12 @@ static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* 
         while (IS_DIGIT(_json[idx])) idx ++;
     }
 
-    errno = 0;
-    val->num = strtod(_json.substr(0, idx).c_str(), nullptr);
-
-    if (errno == ERANGE and (val->num == HUGE_VAL or val->num == -HUGE_VAL)) return JsonifyParseCode::NUMBER_TOO_BIG;
+    errno = 0.0;
+    double number = strtod(_json.substr(0, idx).c_str(), nullptr);
+    if (errno == ERANGE and (number == HUGE_VAL or number == -HUGE_VAL)) return JsonifyParseCode::NUMBER_TOO_BIG;
 
     val->type = JsonifyType::JSONIFY_NUMBER;
+    val->value = number;
     ctx->json = ctx->json.substr(idx, ctx->json.size());
 
     return JsonifyParseCode::OK;
@@ -131,5 +130,5 @@ JsonifyType jsonify_get_type(const JsonifyValue* val) {
 // 返回 JsonifyValue 的 number
 double jsonify_get_number(const JsonifyValue* val) {
     assert(val != nullptr and val->type == JsonifyType::JSONIFY_NUMBER);
-    return val->num;
+    return std::get<double>(val->value);
 }

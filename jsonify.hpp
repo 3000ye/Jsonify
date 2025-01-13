@@ -10,7 +10,8 @@ enum class JsonifyType {
     JSONIFY_NUMBER,  // number
     JSONIFY_STRING,  // string
     JSONIFY_ARRAY,   // array [...]
-    JSONIFY_OBJECT   // object {...}
+    JSONIFY_OBJECT,  // object {...}
+    UNKNOWN          //  default unknown
 };
 
 
@@ -26,8 +27,10 @@ enum class JsonifyParseCode{
 
 // 定义 JSON 树节点（JSON 值）
 struct JsonifyValue {
-    JsonifyType type;  // JSON 的类型
-    double num;        // number 类型的数字
+    JsonifyType type;
+    std::variant<double, std::string> value;
+
+    JsonifyValue() : type(JsonifyType::UNKNOWN) {}
 };
 
 
@@ -39,3 +42,10 @@ JsonifyType jsonify_get_type(const JsonifyValue* val);
 
 // 获取 number
 double jsonify_get_number(const JsonifyValue* val);
+// 设置 number
+void jsonify_set_number(JsonifyValue* val, double number);
+
+// 获取 string
+std::string jsonify_get_string(const JsonifyValue* val);
+// 设置 string
+void jsonify_set_string(JsonifyValue* val, const std::string& string);
