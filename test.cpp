@@ -45,15 +45,14 @@ static int test_pass = 0;
 
 
 // 测试基准，输出不通过的测试点信息
-#define EXPECT_EQ_BASE(equality, expect_name, expect, actual_name, actual, format) \
+#define EXPECT_EQ_BASE(equality, expect_name, expect, actual_name, actual) \
     do { \
         test_cnt ++; \
         if (equality) \
             test_pass ++; \
         else { \
-            fprintf( \
-                stderr, "%s:%d, expect = %s::" format ", actual = %s::" format "\n", __FILE__, __LINE__, \
-                expect_name, expect, actual_name, actual); \
+            std::cerr << __FILE__ << ":" << __LINE__ << ", expect = " << expect_name << "::" << expect \
+                << " actual = " << actual_name << "::" << actual << std::endl; \
             main_ret = 1; \
         } \
     } while(0)
@@ -61,11 +60,17 @@ static int test_pass = 0;
 
 // 类型校验
 #define EXPECT_EQ_TYPE(expect, actual) EXPECT_EQ_BASE((expect) == (actual), \
-    typeid(expect).name(), enum_to_string_generic(expect).c_str(), typeid(actual).name(), enum_to_string_generic(actual).c_str(), "%s")
+    typeid(expect).name(), enum_to_string_generic(expect), typeid(actual).name(), enum_to_string_generic(actual))
 
 
 // 数字校验
-#define EXPECT_EQ_DOUBLE(expect, actual) EXPECT_EQ_BASE((expect) == (actual), typeid(expect).name(), expect, typeid(actual).name(), actual, "%.17g")
+#define EXPECT_EQ_DOUBLE(expect, actual) EXPECT_EQ_BASE((expect) == (actual), \
+    typeid(expect).name(), std::to_string(expect), typeid(actual).name(), std::to_string(actual))
+
+
+// 字符串校验
+#define EXPECT_EQ_STRING(expect, actual) EXPECT_EQ_BASE((expect) == (actual), \
+    typeid(expect).name(), expect, typeid(actual).name(), actual)
 
 
 // null, true, false 测试
@@ -118,17 +123,32 @@ static void test_parse_number() {
     TEST_NUMBER(-1E-10, "-1E-10");
     TEST_NUMBER(1.234E+10, "1.234E+10");
     TEST_NUMBER(1.234E-10, "1.234E-10");
-    TEST_NUMBER(0.0, "1e-10000"); /* must underflow */
+    TEST_NUMBER(0.0, "1e-10000");
 
-    TEST_NUMBER(1.0000000000000002, "1.0000000000000002"); /* the smallest number > 1 */
-    TEST_NUMBER( 4.9406564584124654e-324, "4.9406564584124654e-324"); /* minimum denormal */
+    TEST_NUMBER(1.0000000000000002, "1.0000000000000002");
+    TEST_NUMBER( 4.9406564584124654e-324, "4.9406564584124654e-324");
     TEST_NUMBER(-4.9406564584124654e-324, "-4.9406564584124654e-324");
-    TEST_NUMBER( 2.2250738585072009e-308, "2.2250738585072009e-308");  /* Max subnormal double */
+    TEST_NUMBER( 2.2250738585072009e-308, "2.2250738585072009e-308");
     TEST_NUMBER(-2.2250738585072009e-308, "-2.2250738585072009e-308");
-    TEST_NUMBER( 2.2250738585072014e-308, "2.2250738585072014e-308");  /* Min normal positive double */
+    TEST_NUMBER( 2.2250738585072014e-308, "2.2250738585072014e-308");
     TEST_NUMBER(-2.2250738585072014e-308, "-2.2250738585072014e-308");
-    TEST_NUMBER( 1.7976931348623157e+308, "1.7976931348623157e+308");  /* Max double */
+    TEST_NUMBER( 1.7976931348623157e+308, "1.7976931348623157e+308");
     TEST_NUMBER(-1.7976931348623157e+308, "-1.7976931348623157e+308");
+}
+
+
+// string 测试
+#define TEST_STRING(expect, json) \
+    do { \
+        JsonifyValue val; \
+        EXPECT_EQ_TYPE(JsonifyParseCode::OK, jsonify_parse(&val, json)); \
+        EXPECT_EQ_TYPE(JsonifyType::JSONIFY_STRING, jsonify_get_type(&val)); \
+        EXPECT_EQ_STRING(expect, jsonify_get_string(&val)); \
+    } while(0)
+
+
+static void test_parse_string() {
+    TEST_STRING("abs", "abs");
 }
 
 

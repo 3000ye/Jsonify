@@ -92,6 +92,12 @@ static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* 
 }
 
 
+// 解析 JSON 为 string
+static JsonifyParseCode jsonify_parse_string(JsonifyContext* ctx, JsonifyValue* val) {
+    return JsonifyParseCode::OK;
+}
+
+
 // 解析 JSON 值
 static JsonifyParseCode jsonify_parse_value(JsonifyContext* ctx, JsonifyValue* val) {
     jsonify_delete_left_whitespace(ctx);
