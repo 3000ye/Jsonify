@@ -42,7 +42,7 @@ static JsonifyParseCode jsonify_parse_literal(JsonifyContext* ctx, JsonifyValue*
     if (_json.size() > 5 and (_json[l] != ' ' and _json[l] != '\t' and _json[l] != '\r' and _json[l] != '\n'))
         return JsonifyParseCode::INVALID_VALUE;
 
-    ctx->json = ctx->json.substr(l, ctx->json.size());
+    ctx->json = ctx->json.substr(l);
     val->type = type;
     return JsonifyParseCode::OK;
 }
@@ -86,7 +86,7 @@ static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* 
 
     val->type = JsonifyType::JSONIFY_NUMBER;
     val->value = number;
-    ctx->json = ctx->json.substr(idx, ctx->json.size());
+    ctx->json = ctx->json.substr(idx);
 
     return JsonifyParseCode::OK;
 }
@@ -94,7 +94,38 @@ static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* 
 
 // 解析 JSON 为 string
 static JsonifyParseCode jsonify_parse_string(JsonifyContext* ctx, JsonifyValue* val) {
-    return JsonifyParseCode::OK;
+    const std::string _json = ctx->json;
+
+    int idx = 0; std::string temp;
+    while (_json[idx] != '\0') {
+        idx ++;
+
+        if (_json[idx] == '\\') {
+            if (_json[idx + 1] == '\0') return JsonifyParseCode::INVALID_VALUE;
+
+            idx ++;
+            switch (_json[idx]) {
+                case 'n': temp += '\n'; break;
+                case 'b': temp += '\b'; break;
+                case 'f': temp += '\f'; break;
+                case 'r': temp += '\r'; break;
+                case 't': temp += '\t'; break;
+                case '/': temp += '/'; break;
+                case '\"': temp += '\"'; break;
+                case '\\': temp += '\\'; break;
+                default: return JsonifyParseCode::INVALID_STRING_ESCAPE;  // 对于未处理的转义符号保持静默
+            }
+        }
+        else if (_json[idx] == '\"') {
+            val->value = temp;
+            val->type = JsonifyType::JSONIFY_STRING;
+            ctx->json = ctx->json.substr(idx + 1);
+            return JsonifyParseCode::OK;
+        }
+        else temp += _json[idx];
+    }
+
+    return JsonifyParseCode::MISS_QUOTATION_MARK;
 }
 
 
@@ -111,6 +142,8 @@ static JsonifyParseCode jsonify_parse_value(JsonifyContext* ctx, JsonifyValue* v
             return jsonify_parse_literal(ctx, val, "true", JsonifyType::JSONIFY_TRUE);    // true
         case 'f':
             return jsonify_parse_literal(ctx, val, "false", JsonifyType::JSONIFY_FALSE);  // false
+        case '\"':
+            return jsonify_parse_string(ctx, val);
         default:
             return jsonify_parse_number(ctx, val);                                                 // 默认解析 number
     }
@@ -137,4 +170,11 @@ JsonifyType jsonify_get_type(const JsonifyValue* val) {
 double jsonify_get_number(const JsonifyValue* val) {
     assert(val != nullptr and val->type == JsonifyType::JSONIFY_NUMBER);
     return std::get<double>(val->value);
+}
+
+
+// 返回 JsonifyValue 的 string
+std::string jsonify_get_string(const JsonifyValue* val) {
+    assert(val != nullptr and val->type == JsonifyType::JSONIFY_STRING);
+    return std::get<std::string>(val->value);
 }

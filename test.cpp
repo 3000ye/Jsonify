@@ -21,11 +21,15 @@ static std::string jsonify_type_to_string(const JsonifyType type) {
 // 将 parse code 转换为 string
 static std::string jsonify_parse_code_to_string(const JsonifyParseCode code) {
     switch (code) {
-        case JsonifyParseCode::OK:                 return "OK";
-        case JsonifyParseCode::EXPECT_VALUE:       return "EXPECT_VALUE";
-        case JsonifyParseCode::INVALID_VALUE:      return "INVALID_VALUE";
-        case JsonifyParseCode::ROOT_NOT_SINGULAR:  return "ROOT_NOT_SINGULAR";
-        default:                                   return "UNKNOWN";
+        case JsonifyParseCode::OK:                     return "OK";
+        case JsonifyParseCode::EXPECT_VALUE:           return "EXPECT_VALUE";
+        case JsonifyParseCode::INVALID_VALUE:          return "INVALID_VALUE";
+        case JsonifyParseCode::ROOT_NOT_SINGULAR:      return "ROOT_NOT_SINGULAR";
+        case JsonifyParseCode::NUMBER_TOO_BIG:         return "NUMBER_TOO_BIG";
+        case JsonifyParseCode::MISS_QUOTATION_MARK:    return "MISS_QUOTATION_MARK";
+        case JsonifyParseCode::INVALID_STRING_ESCAPE:  return "INVALID_STRING_ESCAPE";
+        case JsonifyParseCode::INVALID_STRING_CHAR:    return "INVALID_STRING_CHAR";
+        default:                                       return "UNKNOWN";
     }
 }
 
@@ -51,8 +55,8 @@ static int test_pass = 0;
         if (equality) \
             test_pass ++; \
         else { \
-            std::cerr << __FILE__ << ":" << __LINE__ << ", expect = " << expect_name << "::" << expect \
-                << " actual = " << actual_name << "::" << actual << std::endl; \
+            std::cerr << __FILE__ << ":" << __LINE__ << "=> expect = " << expect_name << "::" << expect \
+                << ", actual = " << actual_name << "::" << actual << std::endl; \
             main_ret = 1; \
         } \
     } while(0)
@@ -148,7 +152,10 @@ static void test_parse_number() {
 
 
 static void test_parse_string() {
-    TEST_STRING("abs", "abs");
+    TEST_STRING("", "\"\"");
+    TEST_STRING("Hello", "\"Hello\"");
+    TEST_STRING("Hello\nWorld", "\"Hello\\nWorld\"");
+    TEST_STRING("\" \\ / \b \f \n \r \t", "\"\\\" \\\\ \\/ \\b \\f \\n \\r \\t\"");
 }
 
 
@@ -175,6 +182,7 @@ static void test_parse_invalid_value() {
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "ffalse");
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "?");
 
+    // number
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "+0");
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, "+1");
     TEST_ERROR(JsonifyParseCode::INVALID_VALUE, ".123");
@@ -207,14 +215,41 @@ static void test_parse_number_too_big() {
 }
 
 
+// miss_quotation_mark 测试
+static void test_parse_miss_quotation_mark() {
+    TEST_ERROR(JsonifyParseCode::MISS_QUOTATION_MARK, "\"");
+    TEST_ERROR(JsonifyParseCode::MISS_QUOTATION_MARK, "\"abc");
+}
+
+
+//
+static void test_parse_invalid_string_escape() {
+    TEST_ERROR(JsonifyParseCode::INVALID_STRING_ESCAPE, "\"\\v\"");
+    TEST_ERROR(JsonifyParseCode::INVALID_STRING_ESCAPE, "\"\\'\"");
+    TEST_ERROR(JsonifyParseCode::INVALID_STRING_ESCAPE, "\"\\0\"");
+    TEST_ERROR(JsonifyParseCode::INVALID_STRING_ESCAPE, "\"\\x12\"");
+}
+
+
+
+static void test_parse_invalid_string_char() {
+    TEST_ERROR(JsonifyParseCode::INVALID_STRING_CHAR, "\"\x01\"");
+    TEST_ERROR(JsonifyParseCode::INVALID_STRING_CHAR, "\"\x1F\"");
+}
+
+
 static void test_parse() {
     test_parse_literal();
     test_parse_number();
+    test_parse_string();
 
     test_parse_expect_value();
     test_parse_invalid_value();
     test_parse_root_not_singular();
     test_parse_number_too_big();
+    test_parse_miss_quotation_mark();
+    test_parse_invalid_string_escape();
+    test_parse_invalid_string_char();
 }
 
 

@@ -8,3 +8,4 @@ add_executable(
 )
 
 add_executable(std_variant learn_cpp/std_variant.cpp)
+add_executable(try_sth learn_cpp/try_sth.cpp)

@@ -18,10 +18,13 @@ enum class JsonifyType {
 // 定义返回码
 enum class JsonifyParseCode{
     OK = 0,
-    EXPECT_VALUE,       // 只有空字符
-    INVALID_VALUE,      // 无效值
-    ROOT_NOT_SINGULAR,  // 在一个值的空白之后，还有值
-    NUMBER_TOO_BIG,
+    EXPECT_VALUE,         // 只有空字符
+    INVALID_VALUE,        // 无效值
+    ROOT_NOT_SINGULAR,    // 在一个值的空白之后，还有值
+    NUMBER_TOO_BIG,       // 超出范围的 number
+    MISS_QUOTATION_MARK,  // 没有结尾 \" 的 string
+    INVALID_STRING_ESCAPE,
+    INVALID_STRING_CHAR,
 };
 
 
