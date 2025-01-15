@@ -96,33 +96,37 @@ static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* 
 static JsonifyParseCode jsonify_parse_string(JsonifyContext* ctx, JsonifyValue* val) {
     const std::string _json = ctx->json;
 
-    int idx = 0; std::string temp;
-    while (_json[idx] != '\0') {
-        idx ++;
+    std::string temp;
+    for (int idx = 1; _json[idx] != '\0'; idx ++) {
+        switch (_json[idx]) {
+            case '\"':  // 找到终止的 \"，结束遍历
+                val->value = temp;
+                val->type = JsonifyType::JSONIFY_STRING;
+                ctx->json = ctx->json.substr(idx + 1);
+                return JsonifyParseCode::OK;
+            case '\\':  // 解析转义字符，对于非法转义字符抛出异常
+                if (_json[idx + 1] == '\0') return JsonifyParseCode::INVALID_VALUE;
 
-        if (_json[idx] == '\\') {
-            if (_json[idx + 1] == '\0') return JsonifyParseCode::INVALID_VALUE;
+                idx ++;
+                switch (_json[idx]) {
+                    case 'n': temp += '\n'; break;
+                    case 'b': temp += '\b'; break;
+                    case 'f': temp += '\f'; break;
+                    case 'r': temp += '\r'; break;
+                    case 't': temp += '\t'; break;
+                    case '/': temp += '/'; break;
+                    case '\"': temp += '\"'; break;
+                    case '\\': temp += '\\'; break;
+                    default: return JsonifyParseCode::INVALID_STRING_ESCAPE;
+                }
+                break;
+            default:  // 检验非法字符
+                if (static_cast<unsigned char>(_json[idx]) < 0x20) {
+                    return JsonifyParseCode::INVALID_STRING_CHAR;
+                }
 
-            idx ++;
-            switch (_json[idx]) {
-                case 'n': temp += '\n'; break;
-                case 'b': temp += '\b'; break;
-                case 'f': temp += '\f'; break;
-                case 'r': temp += '\r'; break;
-                case 't': temp += '\t'; break;
-                case '/': temp += '/'; break;
-                case '\"': temp += '\"'; break;
-                case '\\': temp += '\\'; break;
-                default: return JsonifyParseCode::INVALID_STRING_ESCAPE;  // 对于未处理的转义符号保持静默
-            }
+                temp += _json[idx];
         }
-        else if (_json[idx] == '\"') {
-            val->value = temp;
-            val->type = JsonifyType::JSONIFY_STRING;
-            ctx->json = ctx->json.substr(idx + 1);
-            return JsonifyParseCode::OK;
-        }
-        else temp += _json[idx];
     }
 
     return JsonifyParseCode::MISS_QUOTATION_MARK;

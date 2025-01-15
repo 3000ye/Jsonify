@@ -222,7 +222,7 @@ static void test_parse_miss_quotation_mark() {
 }
 
 
-//
+// 非法转义字符测试
 static void test_parse_invalid_string_escape() {
     TEST_ERROR(JsonifyParseCode::INVALID_STRING_ESCAPE, "\"\\v\"");
     TEST_ERROR(JsonifyParseCode::INVALID_STRING_ESCAPE, "\"\\'\"");
@@ -231,7 +231,7 @@ static void test_parse_invalid_string_escape() {
 }
 
 
-
+// 非法字符测试
 static void test_parse_invalid_string_char() {
     TEST_ERROR(JsonifyParseCode::INVALID_STRING_CHAR, "\"\x01\"");
     TEST_ERROR(JsonifyParseCode::INVALID_STRING_CHAR, "\"\x1F\"");
