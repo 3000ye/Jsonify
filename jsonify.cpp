@@ -92,6 +92,8 @@ static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* 
 }
 
 
+
+
 // 解析 JSON 为 string
 static JsonifyParseCode jsonify_parse_string(JsonifyContext* ctx, JsonifyValue* val) {
     const std::string _json = ctx->json;
@@ -117,6 +119,7 @@ static JsonifyParseCode jsonify_parse_string(JsonifyContext* ctx, JsonifyValue* 
                     case '/': temp += '/'; break;
                     case '\"': temp += '\"'; break;
                     case '\\': temp += '\\'; break;
+                    case 'u': temp += 'u'; break;
                     default: return JsonifyParseCode::INVALID_STRING_ESCAPE;
                 }
                 break;
