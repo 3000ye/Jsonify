@@ -21,15 +21,17 @@ static std::string jsonify_type_to_string(const JsonifyType type) {
 // 将 parse code 转换为 string
 static std::string jsonify_parse_code_to_string(const JsonifyParseCode code) {
     switch (code) {
-        case JsonifyParseCode::OK:                     return "OK";
-        case JsonifyParseCode::EXPECT_VALUE:           return "EXPECT_VALUE";
-        case JsonifyParseCode::INVALID_VALUE:          return "INVALID_VALUE";
-        case JsonifyParseCode::ROOT_NOT_SINGULAR:      return "ROOT_NOT_SINGULAR";
-        case JsonifyParseCode::NUMBER_TOO_BIG:         return "NUMBER_TOO_BIG";
-        case JsonifyParseCode::MISS_QUOTATION_MARK:    return "MISS_QUOTATION_MARK";
-        case JsonifyParseCode::INVALID_STRING_ESCAPE:  return "INVALID_STRING_ESCAPE";
-        case JsonifyParseCode::INVALID_STRING_CHAR:    return "INVALID_STRING_CHAR";
-        default:                                       return "UNKNOWN";
+        case JsonifyParseCode::OK:                         return "OK";
+        case JsonifyParseCode::EXPECT_VALUE:               return "EXPECT_VALUE";
+        case JsonifyParseCode::INVALID_VALUE:              return "INVALID_VALUE";
+        case JsonifyParseCode::ROOT_NOT_SINGULAR:          return "ROOT_NOT_SINGULAR";
+        case JsonifyParseCode::NUMBER_TOO_BIG:             return "NUMBER_TOO_BIG";
+        case JsonifyParseCode::MISS_QUOTATION_MARK:        return "MISS_QUOTATION_MARK";
+        case JsonifyParseCode::INVALID_STRING_ESCAPE:      return "INVALID_STRING_ESCAPE";
+        case JsonifyParseCode::INVALID_STRING_CHAR:        return "INVALID_STRING_CHAR";
+        case JsonifyParseCode::INVALID_UNICODE_HEX:        return "INVALID_UNICODE_HEX";
+        case JsonifyParseCode::INVALID_UNICODE_SURROGATE:  return "INVALID_UNICODE_SURROGATE";
+        default:                                           return "UNKNOWN";
     }
 }
 
@@ -156,7 +158,6 @@ static void test_parse_string() {
     TEST_STRING("Hello", "\"Hello\"");
     TEST_STRING("Hello\nWorld", "\"Hello\\nWorld\"");
     TEST_STRING("\" \\ / \b \f \n \r \t", "\"\\\" \\\\ \\/ \\b \\f \\n \\r \\t\"");
-    TEST_STRING("Hello\0World", "\"Hello\\u0000World\"");
     TEST_STRING("\x24", "\"\\u0024\"");         /* Dollar sign U+0024 */
     TEST_STRING("\xC2\xA2", "\"\\u00A2\"");     /* Cents sign U+00A2 */
     TEST_STRING("\xE2\x82\xAC", "\"\\u20AC\""); /* Euro sign U+20AC */

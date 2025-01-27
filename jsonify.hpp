@@ -25,6 +25,8 @@ enum class JsonifyParseCode{
     MISS_QUOTATION_MARK,  // 没有结尾 \" 的 string
     INVALID_STRING_ESCAPE,
     INVALID_STRING_CHAR,
+    INVALID_UNICODE_HEX,  // 不合法的16进制字符
+    INVALID_UNICODE_SURROGATE,
 };
 
 

@@ -7,6 +7,7 @@
 
 #define IS_DIGIT(c) ((c >= '0') and (c <= '9'))
 #define IS_DIGIT_1TO9(c) ((c >= '1') and (c <= '9'))
+#define IS_CHAR_HEX(c) (((c >= 'a') and (c <= 'f')) or ((c >= 'A') and (c <= 'F')))
 
 struct JsonifyContext {
     std::string json;
@@ -92,6 +93,38 @@ static JsonifyParseCode jsonify_parse_number(JsonifyContext* ctx, JsonifyValue* 
 }
 
 
+// 校验 string 中的 16 进制字符是否合法
+static bool jsonify_parse_hex4(std::string head) {
+    return std::all_of(head.begin(), head.end(), [](const auto c) {
+        return IS_DIGIT(c) || IS_CHAR_HEX(c);
+    });
+}
+
+
+// 将 Unicode 字符码点输出为 string
+static std::string jsonify_parse_unicode(const int unicode) {
+    std::string utf8;
+    if (unicode <= 0x7F) { // 1-byte (ASCII)
+        utf8 += static_cast<char>(unicode);
+    }
+    else if (unicode <= 0x7FF) { // 2-byte
+        utf8 += static_cast<char>(0xC0 | unicode >> 6 & 0x1F);
+        utf8 += static_cast<char>(0x80 | unicode & 0x3F);
+    }
+    else if (unicode <= 0xFFFF) { // 3-byte
+        utf8 += static_cast<char>(0xE0 | unicode >> 12 & 0x0F);
+        utf8 += static_cast<char>(0x80 | unicode >> 6 & 0x3F);
+        utf8 += static_cast<char>(0x80 | unicode & 0x3F);
+    }
+    else { // 4-byte
+        utf8 += static_cast<char>(0xF0 | unicode >> 18 & 0x07);
+        utf8 += static_cast<char>(0x80 | unicode >> 12 & 0x3F);
+        utf8 += static_cast<char>(0x80 | unicode >> 6 & 0x3F);
+        utf8 += static_cast<char>(0x80 | unicode & 0x3F);
+    }
+
+    return utf8;
+}
 
 
 // 解析 JSON 为 string
@@ -119,7 +152,34 @@ static JsonifyParseCode jsonify_parse_string(JsonifyContext* ctx, JsonifyValue* 
                     case '/': temp += '/'; break;
                     case '\"': temp += '\"'; break;
                     case '\\': temp += '\\'; break;
-                    case 'u': temp += 'u'; break;
+                    case 'u': {
+                        idx ++;
+                        // 校验 16 进制字符
+                        auto head = _json.substr(idx, 4);
+                        if (!jsonify_parse_hex4(head)) return JsonifyParseCode::INVALID_UNICODE_HEX;
+                        // 转换为 16 进制，idx 前进
+                        int u_head = std::stoi(head, nullptr, 16);
+                        idx += 4;
+
+                        // 若为高代理项，则还需校验低代理项
+                        if (u_head >= 0xD800 and u_head <= 0xDBFF) {
+                            if (_json[idx] != '\\') return JsonifyParseCode::INVALID_UNICODE_SURROGATE;
+                            idx ++;
+                            if (_json[idx] != 'u') return JsonifyParseCode::INVALID_UNICODE_SURROGATE;
+                            idx ++;
+                            auto _head = _json.substr(idx, 4);
+                            if (!jsonify_parse_hex4(_head)) return JsonifyParseCode::INVALID_UNICODE_HEX;
+                            int _u_head = std::stoi(_head, nullptr, 16);
+                            idx += 4;
+                            if (_u_head < 0xDC00 or _u_head > 0xDFFF) return JsonifyParseCode::INVALID_UNICODE_SURROGATE;
+
+                            u_head = 0x10000 + ((u_head - 0xD800 << 10) + (_u_head - 0xDC00));
+                        }
+
+                        auto u_str = jsonify_parse_unicode(u_head);
+                        temp += u_str; idx --;  // 因为 for 循环中有 idx ++，所以这里 -- 一次
+                        break;
+                    }
                     default: return JsonifyParseCode::INVALID_STRING_ESCAPE;
                 }
                 break;
